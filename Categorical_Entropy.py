@@ -2,10 +2,13 @@ import pandas as pd
 import numpy as np
 from numpy import genfromtxt
 
-df = pd.read_csv('categorical_test.csv', sep=';')
+df_2 = pd.read_csv('categorical_test.csv', sep=';')
+df = pd.read_csv('numerical_test.csv', sep=';')
 y_name = 'EXPERIENCIA'
+#Categorical = True and Numerical = False
+model = False
 
-def general_entropy(df):
+def general_categorical_entropy(df):
     y, x = df.shape
     data = df.values
     weights = []
@@ -19,23 +22,54 @@ def general_entropy(df):
     first = weights * np.log2(weights) + (1 - weights) * np.log2(1 - weights) 
     return sum(first)/2
 
-def specific_entropies(df, total_entropy):
+def general_numerical_entropy(df):
+    y, x = df.shape
+    data = df.values
+    weights = []
+    maximun = []
+    minimun = []
+
+    for i in df.columns:
+        maximun.append(float(df[i].max()))
+        minimun.append(float(df[i].min()))
+
+    for i in range(y):
+        for j in range(y):
+            weights.append((data[i] - data[j])/(np.array(maximun) - np.array(minimun)))
+
+    weights = np.array(weights)
+    weights = np.power(weights,2)
+    weights = weights[(weights > 0) & (weights < 1)]
+    first = weights * np.log2(weights) + (1 - weights) * np.log2(1 - weights) 
+    return sum(first)/2
+
+def specific_entropies(df, total_entropy, model):
     specific = {}
     for i in df.columns:
         df_delete = df.drop(columns=[i])
-        specific[i] = abs(general_entropy(df_delete) - total_entropy)
-    
+        if model:
+            specific[i] = abs(general_categorical_entropy(df_delete) - total_entropy)
+        else:
+            specific[i] = abs(general_numerical_entropy(df_delete) - total_entropy) 
     return specific
 
-def select_minimun_entropy(df,name):
+def select_minimun_entropy(df,name, model):
     column0 = []
     column1 = []
-    total = general_entropy(df)
-    specific_diferences = specific_entropies(df, total)
-    for i in specific_diferences:
-        if i != name:
-            column0.append(i)
-            column1.append(specific_diferences[i])
+    if model:
+        total = general_categorical_entropy(df)
+        specific_diferences = specific_entropies(df, total, model)
+        for i in specific_diferences:
+            if i != name:
+                column0.append(i)
+                column1.append(specific_diferences[i])
+    else:
+        total = general_numerical_entropy(df)
+        specific_diferences = specific_entropies(df, total, model)
+        for i in specific_diferences:
+            if i != name:
+                column0.append(i)
+                column1.append(specific_diferences[i])
 
     df_decision = pd.DataFrame(zip(column0, column1), columns=['name', 'diference'])
     delete_name = df_decision[df_decision['diference'] == df_decision['diference'].min()]['name'].values[0]
@@ -44,8 +78,5 @@ def select_minimun_entropy(df,name):
     df_drop = df.drop(columns=[delete_name])
     return df_drop    
 
-#select_minimun_entropy(df, y_name)
-#print (len(df.columns))
-
 while len(df.columns) >= 2:
-    df = select_minimun_entropy(df, y_name)
+    df = select_minimun_entropy(df, y_name, model)
