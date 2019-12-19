@@ -1,17 +1,22 @@
 import pandas as pd
 import numpy as np
+import math
 from numpy import genfromtxt
 
-df_2 = pd.read_csv('categorical_test.csv', sep=';')
-df = pd.read_csv('numerical_test.csv', sep=';')
+#df = pd.read_csv('categorical_test.csv', sep=';')
+#df = pd.read_csv('numerical_test.csv', sep=';')
+df = pd.read_csv('breast-cancer.csv', sep=',')
+
 y_name = 'EXPERIENCIA'
 #Categorical = True and Numerical = False
-model = False
+model = True
 
 def general_categorical_entropy(df):
     y, x = df.shape
     data = df.values
     weights = []
+
+    print ('Calculado...')
 
     for i in range(y):
         for j in range(y):
@@ -26,6 +31,7 @@ def general_numerical_entropy(df):
     y, x = df.shape
     data = df.values
     weights = []
+    weights2 = []
     maximun = []
     minimun = []
 
@@ -39,18 +45,25 @@ def general_numerical_entropy(df):
 
     weights = np.array(weights)
     weights = np.power(weights,2)
+    for k in weights:
+        weights2.append(math.sqrt(sum(k))/x)
+
+    weights = np.array(weights2)
     weights = weights[(weights > 0) & (weights < 1)]
     first = weights * np.log2(weights) + (1 - weights) * np.log2(1 - weights) 
+    #print (sum(first)/2)
     return sum(first)/2
 
 def specific_entropies(df, total_entropy, model):
     specific = {}
-    for i in df.columns:
+    for count, i in enumerate(df.columns):
         df_delete = df.drop(columns=[i])
         if model:
             specific[i] = abs(general_categorical_entropy(df_delete) - total_entropy)
         else:
             specific[i] = abs(general_numerical_entropy(df_delete) - total_entropy) 
+    
+    print ('{} columns left'.format(count))
     return specific
 
 def select_minimun_entropy(df,name, model):
@@ -73,9 +86,11 @@ def select_minimun_entropy(df,name, model):
 
     df_decision = pd.DataFrame(zip(column0, column1), columns=['name', 'diference'])
     delete_name = df_decision[df_decision['diference'] == df_decision['diference'].min()]['name'].values[0]
-    print (df_decision)
-    print ('The Column deleted is {}'.format(delete_name))
+    #print (df_decision)
+    print ('The Column deleted was {}'.format(delete_name))
     df_drop = df.drop(columns=[delete_name])
+    if len(df_drop.columns) == 1:
+        print (('The Final Column is {}'.format(df_drop.columns[0]))) 
     return df_drop    
 
 while len(df.columns) >= 2:
