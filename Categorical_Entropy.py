@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import math
+import tkinter as tk
 from numpy import genfromtxt
 
 #df = pd.read_csv('categorical_test.csv', sep=';')
@@ -66,23 +67,21 @@ def specific_entropies(df, total_entropy, model):
     print ('{} columns left'.format(count))
     return specific
 
-def select_minimun_entropy(df,name, model):
+def select_minimun_entropy(df, model):
     column0 = []
     column1 = []
     if model:
         total = general_categorical_entropy(df)
         specific_diferences = specific_entropies(df, total, model)
         for i in specific_diferences:
-            if i != name:
-                column0.append(i)
-                column1.append(specific_diferences[i])
+            column0.append(i)
+            column1.append(specific_diferences[i])
     else:
         total = general_numerical_entropy(df)
         specific_diferences = specific_entropies(df, total, model)
         for i in specific_diferences:
-            if i != name:
-                column0.append(i)
-                column1.append(specific_diferences[i])
+            column0.append(i)
+            column1.append(specific_diferences[i])
 
     df_decision = pd.DataFrame(zip(column0, column1), columns=['name', 'diference'])
     delete_name = df_decision[df_decision['diference'] == df_decision['diference'].min()]['name'].values[0]
@@ -93,5 +92,9 @@ def select_minimun_entropy(df,name, model):
         print (('The Final Column is {}'.format(df_drop.columns[0]))) 
     return df_drop    
 
-while len(df.columns) >= 2:
-    df = select_minimun_entropy(df, y_name, model)
+def excecute_selection(df, model, text, root):
+    while len(df.columns) >= 2:
+        print (type(text))
+        text.insert(tk.END,'Jhonsi')
+        root.update_idletasks()
+        df = select_minimun_entropy(df, model)
