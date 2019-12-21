@@ -6,9 +6,8 @@ from numpy import genfromtxt
 
 #df = pd.read_csv('categorical_test.csv', sep=';')
 #df = pd.read_csv('numerical_test.csv', sep=';')
-df = pd.read_csv('breast-cancer.csv', sep=',')
+#df = pd.read_csv('breast-cancer.csv', sep=',')
 
-y_name = 'EXPERIENCIA'
 #Categorical = True and Numerical = False
 model = True
 
@@ -87,14 +86,17 @@ def select_minimun_entropy(df, model):
     delete_name = df_decision[df_decision['diference'] == df_decision['diference'].min()]['name'].values[0]
     #print (df_decision)
     print ('The Column deleted was {}'.format(delete_name))
+    messaje = 'The Column deleted was {}'.format(delete_name)
     df_drop = df.drop(columns=[delete_name])
     if len(df_drop.columns) == 1:
-        print (('The Final Column is {}'.format(df_drop.columns[0]))) 
-    return df_drop    
+        print (('The Final Column is {}'.format(df_drop.columns[0])))
+        messaje += '\n\nThe Final Column is {}'.format(df_drop.columns[0])
+    return df_drop, messaje    
 
 def excecute_selection(df, model, text, root):
+    text.delete('1.0', tk.END)
     while len(df.columns) >= 2:
-        print (type(text))
-        text.insert(tk.END,'Jhonsi')
+        text.insert(tk.END,'Calculado ... \n')
         root.update_idletasks()
-        df = select_minimun_entropy(df, model)
+        df,messaje = select_minimun_entropy(df, model)
+        text.insert(tk.END,'{} \n'.format(messaje))
